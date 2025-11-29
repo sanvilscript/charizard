@@ -1,6 +1,6 @@
 #!/bin/bash
 # ══════════════════════════════════════════════════════════════════════════════
-#   CHARIZARD FIREWALL - INSTALLER v1.0.1
+#   CHARIZARD FIREWALL - INSTALLER v1.0.2
 #   "Fireblast your packets"
 #   Developed by Sanvil (c) 2025
 # ══════════════════════════════════════════════════════════════════════════════

@@ -195,6 +195,7 @@ Setup: copy `examples/notify.example.json` to `/etc/firewall/notify.json`
 |---------|----|----|
 | `charizard notify status` | Notification status | Stato notifiche |
 | `charizard notify check` | Manual check | Controllo manuale |
+| `charizard notify system` | Manual system check | Controllo sistema manuale |
 | `charizard notify enable` | Enable timer | Abilita timer |
 | `charizard notify disable` | Disable timer | Disabilita timer |
 | `charizard notify reset` | Reset cooldowns | Reset cooldown |
@@ -206,6 +207,7 @@ Setup: copy `examples/notify.example.json` to `/etc/firewall/notify.json`
 | Ban | IP banned notification | Notifica IP bannato |
 | Spike | Traffic spike detection | Rilevamento picchi |
 | Scan | Port scan detection | Rilevamento port scan |
+| System | Disk/Memory/CPU/Services alerts | Alert Disco/Memoria/CPU/Servizi |
 | SSH | SSH login notification (PAM) | Notifica login SSH (PAM) |
 | Backup | S3 backup results | Risultati backup S3 |
 
@@ -224,6 +226,34 @@ Enable in `/etc/firewall/notify.json`:
   }
 }
 ```
+
+**System Alerts / Alert Sistema:**
+
+Monitors disk, memory, CPU and services. Sends Telegram alerts when thresholds are exceeded.
+Monitora disco, memoria, CPU e servizi. Invia alert Telegram al superamento delle soglie.
+
+Configure in `/etc/firewall/notify.json`:
+```json
+{
+  "alerts": {
+    "system": {
+      "enabled": true,
+      "disk_threshold": 80,
+      "memory_threshold": 85,
+      "cpu_threshold": 4.0,
+      "services": ["docker", "ssh", "fail2ban"],
+      "cooldown_minutes": 30
+    }
+  }
+}
+```
+
+| Threshold | Default | Alert when / Allerta quando |
+|-----------|---------|----------------------------|
+| disk | 80% | Disk usage > 80% / Uso disco > 80% |
+| memory | 85% | Memory usage > 85% / Uso RAM > 85% |
+| cpu | 4.0 | Load average > 4.0 / Carico medio > 4.0 |
+| services | - | Service not running / Servizio non attivo |
 
 ---
 

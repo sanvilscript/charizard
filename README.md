@@ -21,7 +21,7 @@
 
 ### Fireblast your packets
 
-[![Version](https://img.shields.io/badge/version-1.0.1-orange.svg)](https://github.com/sanvilscript/charizard)
+[![Version](https://img.shields.io/badge/version-1.0.2-orange.svg)](https://github.com/sanvilscript/charizard)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Linux-blue.svg)](https://www.linux.org/)
 [![Debian](https://img.shields.io/badge/Debian-12%20|%2013-A81D33.svg?logo=debian)](https://www.debian.org/)
@@ -99,6 +99,7 @@ charizard <TAB>       # Show all commands / Mostra tutti i comandi
 | Scan Detection | NULL/XMAS/FIN, illegal TCP flags |
 | ICMP Limit | 10/sec (monitoring friendly) |
 | Blacklist | ipset with 1h auto-expiry |
+| System Alerts | Disk/Memory/CPU/Services monitoring via Telegram |
 
 ---
 

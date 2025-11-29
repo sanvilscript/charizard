@@ -1,6 +1,6 @@
 #!/bin/bash
 # ══════════════════════════════════════════════════════════════════════════════
-#   CHARIZARD NOTIFY MODULE v1.0.0
+#   CHARIZARD NOTIFY MODULE v1.0.1
 #   Centralized notification system for alerts and monitoring
 #   Developed by Sanvil (c) 2025
 # ══════════════════════════════════════════════════════════════════════════════
@@ -47,6 +47,14 @@ load_config() {
         # Backup config
         BACKUP_SUCCESS=$(jq -r '.alerts.backup.success // true' "$NOTIFY_CONFIG")
         BACKUP_FAILURE=$(jq -r '.alerts.backup.failure // true' "$NOTIFY_CONFIG")
+
+        # System config
+        ALERT_SYSTEM=$(jq -r '.alerts.system.enabled // true' "$NOTIFY_CONFIG")
+        DISK_THRESHOLD=$(jq -r '.alerts.system.disk_threshold // 80' "$NOTIFY_CONFIG")
+        MEMORY_THRESHOLD=$(jq -r '.alerts.system.memory_threshold // 85' "$NOTIFY_CONFIG")
+        CPU_THRESHOLD=$(jq -r '.alerts.system.cpu_threshold // 4.0' "$NOTIFY_CONFIG")
+        SYSTEM_SERVICES=$(jq -r '.alerts.system.services // ["docker","ssh","fail2ban"] | join(" ")' "$NOTIFY_CONFIG")
+        SYSTEM_COOLDOWN=$(jq -r '.alerts.system.cooldown_minutes // 30' "$NOTIFY_CONFIG")
     else
         # Defaults
         NOTIFY_ENABLED="true"
@@ -63,6 +71,12 @@ load_config() {
         F2B_MODE="summary"
         BACKUP_SUCCESS="true"
         BACKUP_FAILURE="true"
+        ALERT_SYSTEM="true"
+        DISK_THRESHOLD=80
+        MEMORY_THRESHOLD=85
+        CPU_THRESHOLD=4.0
+        SYSTEM_SERVICES="docker ssh fail2ban"
+        SYSTEM_COOLDOWN=30
     fi
 
     # Check if Telegram is available
@@ -248,6 +262,64 @@ check_scans() {
 }
 
 # ══════════════════════════════════════════════════════════════════════════════
+# SYSTEM ALERTS (Disk, Memory, CPU, Services)
+# ══════════════════════════════════════════════════════════════════════════════
+
+check_system() {
+    load_config
+    [ "$NOTIFY_ENABLED" != "true" ] && return
+    [ "$ALERT_SYSTEM" != "true" ] && return
+
+    local now=$(date +%s)
+
+    # Check Disk Usage
+    local disk_usage=$(df / | awk 'NR==2 {gsub(/%/,""); print $5}')
+    if [ "$disk_usage" -ge "$DISK_THRESHOLD" ]; then
+        if check_cooldown "system_disk" "$SYSTEM_COOLDOWN"; then
+            local disk_info=$(df -h / | awk 'NR==2 {print "Used: "$3" / "$2" ("$5")"}')
+            send_telegram system "disk" "$disk_usage" "$DISK_THRESHOLD" "$disk_info"
+            set_state "system_disk" "$now"
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] SYSTEM ALERT: Disk usage ${disk_usage}% (threshold: ${DISK_THRESHOLD}%)"
+        fi
+    fi
+
+    # Check Memory Usage
+    local mem_usage=$(free | awk '/Mem:/ {printf "%.0f", $3/$2 * 100}')
+    if [ "$mem_usage" -ge "$MEMORY_THRESHOLD" ]; then
+        if check_cooldown "system_memory" "$SYSTEM_COOLDOWN"; then
+            local mem_info=$(free -h | awk '/Mem:/ {print "Used: "$3" / "$2}')
+            send_telegram system "memory" "$mem_usage" "$MEMORY_THRESHOLD" "$mem_info"
+            set_state "system_memory" "$now"
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] SYSTEM ALERT: Memory usage ${mem_usage}% (threshold: ${MEMORY_THRESHOLD}%)"
+        fi
+    fi
+
+    # Check CPU Load
+    local cpu_load=$(cut -d' ' -f1 /proc/loadavg)
+    if awk "BEGIN {exit !($cpu_load > $CPU_THRESHOLD)}"; then
+        if check_cooldown "system_cpu" "$SYSTEM_COOLDOWN"; then
+            local load_info=$(cat /proc/loadavg | cut -d' ' -f1-3)
+            send_telegram system "cpu" "$cpu_load" "$CPU_THRESHOLD" "Load: $load_info"
+            set_state "system_cpu" "$now"
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] SYSTEM ALERT: CPU load $cpu_load (threshold: $CPU_THRESHOLD)"
+        fi
+    fi
+
+    # Check Services
+    for svc in $SYSTEM_SERVICES; do
+        if ! systemctl is-active --quiet "$svc" 2>/dev/null; then
+            local cooldown_key="system_service_${svc}"
+            if check_cooldown "$cooldown_key" "$SYSTEM_COOLDOWN"; then
+                local svc_status=$(systemctl is-active "$svc" 2>/dev/null || echo "unknown")
+                send_telegram system "service" "$svc" "$svc_status"
+                set_state "$cooldown_key" "$now"
+                echo "[$(date '+%Y-%m-%d %H:%M:%S')] SYSTEM ALERT: Service $svc is $svc_status"
+            fi
+        fi
+    done
+}
+
+# ══════════════════════════════════════════════════════════════════════════════
 # F2B SUMMARY (for daily report)
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -289,6 +361,7 @@ alert_backup() {
 run_check() {
     check_spike
     check_scans
+    check_system
 }
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -315,6 +388,7 @@ show_status() {
     printf "  %-12s %-8s %s\n" "Ban" "$([ "$ALERT_BAN" = "true" ] && echo "ON" || echo "OFF")" "cooldown: ${BAN_COOLDOWN}min"
     printf "  %-12s %-8s %s\n" "Spike" "$([ "$ALERT_SPIKE" = "true" ] && echo "ON" || echo "OFF")" "threshold: $SPIKE_THRESHOLD, cooldown: ${SPIKE_COOLDOWN}min"
     printf "  %-12s %-8s %s\n" "Scan" "$([ "$ALERT_SCAN" = "true" ] && echo "ON" || echo "OFF")" "mode: $SCAN_MODE, cooldown: ${SCAN_COOLDOWN}min"
+    printf "  %-12s %-8s %s\n" "System" "$([ "$ALERT_SYSTEM" = "true" ] && echo "ON" || echo "OFF")" "disk:${DISK_THRESHOLD}% mem:${MEMORY_THRESHOLD}% cpu:$CPU_THRESHOLD"
     printf "  %-12s %-8s %s\n" "F2B" "$([ "$ALERT_F2B" = "true" ] && echo "ON" || echo "OFF")" "mode: $F2B_MODE"
     printf "  %-12s %-8s %s\n" "Backup" "ON" "success: $BACKUP_SUCCESS, failure: $BACKUP_FAILURE"
 
@@ -387,6 +461,9 @@ case "${1:-}" in
     scans)
         check_scans
         ;;
+    system)
+        check_system
+        ;;
     ban)
         alert_ban "$2" "$3" "$4"
         ;;
@@ -407,14 +484,15 @@ case "${1:-}" in
         echo "  [✓] State reset"
         ;;
     *)
-        echo "Charizard Notify Module v1.0.0"
+        echo "Charizard Notify Module v1.0.1"
         echo ""
         echo "Usage: $0 <command>"
         echo ""
         echo "Commands:"
-        echo "  check       Run all checks (spike, scans)"
+        echo "  check       Run all checks (spike, scans, system)"
         echo "  spike       Check for traffic spike"
         echo "  scans       Check for port scans"
+        echo "  system      Check disk/memory/cpu/services"
         echo "  ban <ip>    Send ban alert"
         echo "  backup <s|f> Send backup alert"
         echo "  status      Show module status"

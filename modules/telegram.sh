@@ -276,6 +276,62 @@ EOF
 )"
 }
 
+send_system_alert() {
+    local alert_type="$1"
+    local value="$2"
+    local threshold="$3"
+    local extra="$4"
+
+    case "$alert_type" in
+        disk)
+            send_alert "system" "$(cat <<EOF
+<b>💾 DISK SPACE WARNING</b>
+
+<b>Usage:</b> ${value}% (threshold: ${threshold}%)
+<b>$extra</b>
+<b>Host:</b> $(hostname)
+<b>Time:</b> $(date '+%Y-%m-%d %H:%M:%S')
+EOF
+)"
+            ;;
+        memory)
+            send_alert "system" "$(cat <<EOF
+<b>🧠 MEMORY WARNING</b>
+
+<b>Usage:</b> ${value}% (threshold: ${threshold}%)
+<b>$extra</b>
+<b>Host:</b> $(hostname)
+<b>Time:</b> $(date '+%Y-%m-%d %H:%M:%S')
+EOF
+)"
+            ;;
+        cpu)
+            send_alert "system" "$(cat <<EOF
+<b>⚡ CPU LOAD WARNING</b>
+
+<b>Load:</b> $value (threshold: $threshold)
+<b>$extra</b>
+<b>Host:</b> $(hostname)
+<b>Time:</b> $(date '+%Y-%m-%d %H:%M:%S')
+EOF
+)"
+            ;;
+        service)
+            send_alert "system" "$(cat <<EOF
+<b>🔴 SERVICE DOWN</b>
+
+<b>Service:</b> $value
+<b>Status:</b> $threshold
+<b>Host:</b> $(hostname)
+<b>Time:</b> $(date '+%Y-%m-%d %H:%M:%S')
+
+Restart: <code>sudo systemctl restart $value</code>
+EOF
+)"
+            ;;
+    esac
+}
+
 send_daily_report() {
     load_config
 
