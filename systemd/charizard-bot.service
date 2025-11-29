@@ -1,0 +1,25 @@
+[Unit]
+Description=Charizard Telegram Bot
+Documentation=https://github.com/sanvilscript/charizard
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/etc/firewall/telegram.sh start
+Restart=always
+RestartSec=10
+User=root
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=charizard-bot
+
+# Security
+NoNewPrivileges=false
+ProtectSystem=false
+ProtectHome=false
+
+[Install]
+WantedBy=multi-user.target

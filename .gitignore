@@ -1,0 +1,28 @@
+# Backup files
+*.bak
+*.backup
+*~
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# Local config (if any)
+*.local
+
+# Development notes
+ideas.md
+TASK.md
+
+# Real config files (use *.example.json as templates)
+whitelist.json
+openports.json

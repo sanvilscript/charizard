@@ -1,0 +1,32 @@
+{
+  "enabled": true,
+  "alerts": {
+    "ban": {
+      "enabled": true,
+      "cooldown_minutes": 0
+    },
+    "spike": {
+      "enabled": true,
+      "threshold": 100,
+      "period_minutes": 5,
+      "cooldown_minutes": 30
+    },
+    "scan": {
+      "enabled": true,
+      "mode": "separate",
+      "cooldown_minutes": 30,
+      "types": ["NULL", "XMAS", "FIN", "FLAG"]
+    },
+    "ssh": {
+      "enabled": false
+    },
+    "f2b": {
+      "enabled": false,
+      "mode": "summary"
+    },
+    "backup": {
+      "success": true,
+      "failure": true
+    }
+  }
+}

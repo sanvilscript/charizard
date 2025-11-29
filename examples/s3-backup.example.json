@@ -1,0 +1,31 @@
+{
+  "enabled": false,
+  "provider": "s3",
+  "endpoint": "",
+  "region": "eu-west-1",
+  "bucket": "YOUR_BUCKET_NAME",
+  "access_key": "YOUR_ACCESS_KEY",
+  "secret_key": "YOUR_SECRET_KEY",
+  "path": "",
+  "schedule": "03:00",
+  "retention_days": 3,
+  "compression": "gz",
+  "folders": [
+    "/etc/firewall",
+    "/etc/sysctl.d/99-charizard.conf",
+    "/etc/systemd/system/charizard-*.service",
+    "/etc/systemd/system/charizard-*.timer",
+    "/etc/fail2ban/jail.local",
+    "/etc/fail2ban/action.d/charizard.conf"
+  ],
+  "exclude": [
+    "*.log",
+    "*.tmp",
+    "spamhaus_*.txt",
+    "backups/*"
+  ],
+  "notifications": {
+    "success": true,
+    "failure": true
+  }
+}

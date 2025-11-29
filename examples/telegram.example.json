@@ -1,0 +1,32 @@
+{
+  "bot_token": "YOUR_BOT_TOKEN_HERE",
+  "chat_ids": [
+    "YOUR_CHAT_ID_HERE"
+  ],
+  "alerts": {
+    "enabled": true,
+    "ban": true,
+    "spike": true,
+    "scan": true,
+    "f2b": false,
+    "spike_threshold": 100
+  },
+  "report": {
+    "enabled": true,
+    "time": "07:30"
+  },
+  "commands": {
+    "enabled": true,
+    "allowed": [
+      "status",
+      "top",
+      "log",
+      "report",
+      "doctor",
+      "ban",
+      "unban",
+      "reload",
+      "help"
+    ]
+  }
+}

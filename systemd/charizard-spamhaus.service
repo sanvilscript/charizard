@@ -1,0 +1,10 @@
+[Unit]
+Description=Charizard Firewall - Spamhaus DROP Update
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/charizard spamhaus update
+StandardOutput=journal
+StandardError=journal

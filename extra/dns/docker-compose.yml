@@ -1,0 +1,34 @@
+# ==============================================================================
+#   CHARIZARD DNS - Unbound Recursive Resolver
+#   Developed by Sanvil (c) 2025
+# ==============================================================================
+
+services:
+  unbound:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: charizard_dns:latest
+    container_name: charizard_dns
+    hostname: dns
+    restart: unless-stopped
+    ports:
+      - "53:53/udp"
+      - "53:53/tcp"
+    volumes:
+      - ./config/unbound.conf:/etc/unbound/unbound.conf:ro
+      - ./data/root.hints:/etc/unbound/root.hints:ro
+      - ./data/hosts.local:/etc/unbound/unbound.conf.d/hosts.local:ro
+      - dns_cache:/var/lib/unbound
+    environment:
+      - TZ=Europe/Rome
+    dns:
+      - 127.0.0.1
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+
+volumes:
+  dns_cache:
+    name: charizard_dns_cache

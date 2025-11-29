@@ -1,0 +1,10 @@
+[Unit]
+Description=Charizard Firewall - Update whitelist DNS
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/charizard update
+StandardOutput=journal
+StandardError=journal

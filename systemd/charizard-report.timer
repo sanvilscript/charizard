@@ -1,0 +1,11 @@
+[Unit]
+Description=Charizard Daily Report Timer
+Documentation=https://github.com/sanvilscript/charizard
+
+[Timer]
+OnCalendar=*-*-* 07:30:00
+Persistent=true
+RandomizedDelaySec=60
+
+[Install]
+WantedBy=timers.target
